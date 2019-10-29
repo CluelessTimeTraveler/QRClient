@@ -1,0 +1,3 @@
+/home/mario/CLionProjects/QRClient/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/mario/CLionProjects/QRClient/cmake-build-debug/CMakeFiles/QRClient.dir
+/home/mario/CLionProjects/QRClient/cmake-build-debug/CMakeFiles/edit_cache.dir
