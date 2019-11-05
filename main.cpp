@@ -20,14 +20,13 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     std::cout << "-----QR Code Client-----" << std::endl;
-    int sock = 0, valread;
-    struct sockaddr_in serv_addr;
 
-    FILE* QRcode;
-    struct stat st;
 
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     int opt;
-
     int port = 2012;
     std::string address = "127.0.0.1";
     std::string filePath = "google.png";
@@ -39,9 +38,6 @@ int main(int argc, char *argv[]) {
             {"FILE", required_argument, NULL, 'F'},
             {0, 0, 0, 0}
     };
-
-
-
 
     while(((opt = getopt_long(argc, argv, "PAF:", longopts, NULL)) != -1)){
 
@@ -72,7 +68,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Error: Need more arguments";
         return 1;
     }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     std::cout << "\nStarting connection with..";
@@ -81,19 +77,19 @@ int main(int argc, char *argv[]) {
     std::cout << "\nQR Code File: " << filePath;
 
 
-    char buffer[1024] = {0};
+    //Creates socket
+    int sock = 0;
     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
         printf("\n Socket creation error \n");
         return -1;
     }
 
+
+    //Sets up Address struct
+    struct sockaddr_in serv_addr;
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(port);
-
-
-
-
     if(inet_pton(AF_INET, address.c_str(), &serv_addr.sin_addr)<=0)
     {
         printf("\nInvalid address/ Address not supported \n");
@@ -101,40 +97,46 @@ int main(int argc, char *argv[]) {
     }
 
 
+    //Attempts to connect
     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
     {
         printf("\nConnection Failed \n");
         return -1;
     }
 
+    //Opens the QRCode File for transmission
+    FILE* QRcode;
+    struct stat st;
     QRcode = fopen(filePath.c_str(),"r");
-    stat(filePath.c_str(),&st);
 
+    //Gets size of QRCode image
+    stat(filePath.c_str(),&st);
     int byteSize = st.st_size;
 
+
+    //Sends size of QRCode Image
     send(sock, &byteSize, sizeof(int), 0);
     std::cout << "\nSent Size, was " <<  byteSize << std::endl;
 
 
 
-
+    //Creates and stores QRCode in Buffer
     char * imgBuffer = (char *)malloc(st.st_size);
-
     fread(imgBuffer,st.st_size,1, QRcode);
 
 
-
+    //Sends QR Code from buffer and of appropriate size
     send(sock, imgBuffer,st.st_size,0);
     std::cout << "Sent image";
 
+    //Receives size of to be returned URL
     int URLsize;
-
-
     read(sock, &URLsize,sizeof(int));
     std::cout << "\nReceived URL size of: " << URLsize;
 
-    char * recURL = static_cast<char *>(malloc(URLsize));
 
+    //Creates buffer for URL based on size and reads URL into buffer
+    char * recURL = static_cast<char *>(malloc(URLsize));
     read(sock, recURL, URLsize);
     std::cout << "\nRecieved URL: " << recURL;
 
