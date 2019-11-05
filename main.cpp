@@ -111,11 +111,11 @@ int main(int argc, char *argv[]) {
 
     //Gets size of QRCode image
     stat(filePath.c_str(),&st);
-    int byteSize = st.st_size;
+    std::uint32_t byteSize = st.st_size;
 
 
     //Sends size of QRCode Image
-    send(sock, &byteSize, sizeof(int), 0);
+    int BS_QRImageSize = send(sock, &byteSize, sizeof(std::uint32_t), 0);
     std::cout << "\nSent Size, was " <<  byteSize << std::endl;
 
 
@@ -126,19 +126,45 @@ int main(int argc, char *argv[]) {
 
 
     //Sends QR Code from buffer and of appropriate size
-    send(sock, imgBuffer,st.st_size,0);
+    int BS_QRImage = send(sock, imgBuffer,st.st_size,0);
     std::cout << "Sent image";
 
+    //Reads return code from server
+    std::uint32_t returnCode = 1;
+    int BR_returnCode = read(sock, &returnCode, sizeof(std::uint32_t));
+
+    std::cout << "\nReturn code was: " << returnCode;
+
+    switch(returnCode){
+        case 0:
+            break;
+        case 1:
+            std::cout << "\nFailed: Image is not valid or breaches security conduct";
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+    }
+
+    //TO-DO
+    //ADD SWITCH STATEMNT PRBABLY
+
+
+
     //Receives size of to be returned URL
-    int URLsize;
-    read(sock, &URLsize,sizeof(int));
+    std::uint32_t URLsize;
+    int BR_URLlength = read(sock, &URLsize,sizeof(std::uint32_t));
     std::cout << "\nReceived URL size of: " << URLsize;
 
 
     //Creates buffer for URL based on size and reads URL into buffer
     char * recURL = static_cast<char *>(malloc(URLsize));
-    read(sock, recURL, URLsize);
+    int BR_URL = read(sock, recURL, URLsize);
     std::cout << "\nRecieved URL: " << recURL;
 
+
+    free(imgBuffer);
+    free(recURL);
     return 0;
 }
