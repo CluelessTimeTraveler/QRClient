@@ -23,4 +23,8 @@ sys/stat.h
 -
 fstream
 -
+thread
+-
+getopt.h
+-
 
